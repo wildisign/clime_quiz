@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>끌리메 가격 퀴즈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 50%, #fd79a8 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 450px;
+            min-height: 450px;
+            max-height: 95vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff7675;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: none;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #d63031;
+            transform: scale(1.1);
+        }
+
+        .close-btn.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 {
+            color: #2d3436;
+            margin-bottom: 8px;
+            font-size: 1.6em;
+            font-weight: 700;
+        }
+
+        h2 {
+            color: #636e72;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            font-weight: 400;
+        }
+
+        .quiz-type-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(253, 121, 168, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(253, 121, 168, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            box-shadow: 0 8px 20px rgba(162, 155, 254, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 12px 25px rgba(162, 155, 254, 0.4);
+        }
+
+        .question-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 3px solid #fd79a8;
+        }
+
+        .question-title {
+            color: #fd79a8;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            color: #2d3436;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .answer-card {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 184, 148, 0.3);
+            color: white;
+        }
+
+        .answer-title {
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .answer-price {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-small {
+            padding: 12px 25px;
+            font-size: 1em;
+            min-width: 120px;
+        }
+
+        .quiz-info {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 12px;
+            color: #636e72;
+            font-size: 0.8em;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 순서 선택 토글 버튼 스타일 */
+        .order-toggle {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+
+        .toggle-btn {
+            background: #ddd;
+            color: #636e72;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 55px;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(253, 121, 168, 0.4);
+        }
+
+        .toggle-btn:hover:not(.active) {
+            background: #bbb;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                height: auto;
+                max-height: 98vh;
+                border-radius: 20px;
+            }
+            
+            .screen {
+                padding: 15px;
+            }
+            
+            .logo {
+                font-size: 2.5em;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .question-text {
+                font-size: 1.1em;
+            }
+            
+            .answer-price {
+                font-size: 2em;
+            }
+            
+            .btn {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+            
+            .controls-row {
+                flex-direction: column;
+            }
+
+            .order-toggle {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .toggle-btn {
+                padding: 10px 16px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="close-btn" onclick="goHome()">×</button>
+
+        <!-- 메인 화면 -->
+        <div class="screen active" id="home-screen">
+            <div class="logo">💅</div>
+            <h1>끌리메 가격 퀴즈</h1>
+            <h2>끌리메의 시술과 제품 가격을 맞춰보세요!</h2>
+            
+            <div class="quiz-type-buttons">
+                <button class="btn" onclick="startQuiz('시술')">
+                    🏥 시술 가격 퀴즈
+                </button>
+                <button class="btn btn-secondary" onclick="startQuiz('제품')">
+                    🧴 제품 가격 퀴즈
+                </button>
+            </div>
+            
+            <div class="quiz-info">
+                <div class="info-row">
+                    <span>시술 문제</span>
+                    <span><strong>62개</strong></span>
+                </div>
+                <div class="info-row">
+                    <span>제품 문제</span>
+                    <span><strong>11개</strong></span>
+                </div>
+                <div class="info-row">
+                    <span>문제 순서</span>
+                    <span><strong id="order-display">기본</strong></span>
+                </div>
+            </div>
+
+            <!-- 순서 선택 토글 -->
+            <div class="order-toggle">
+                <button class="toggle-btn active" onclick="toggleOrder('기본')" id="order-basic">
+                    📝 기본
+                </button>
+                <button class="toggle-btn" onclick="toggleOrder('랜덤')" id="order-random">
+                    🔀 랜덤
+                </button>
+            </div>
+        </div>
+
+        <!-- 질문 화면 -->
+        <div class="screen" id="question-screen">
+            <div class="question-card">
+                <div class="question-title" id="question-category">시술 가격 퀴즈</div>
+                <div class="question-text" id="question-text">
+                    질문이 여기에 표시됩니다.
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="showAnswer()">
+                    💡 정답 확인
+                </button>
+                <div class="controls-row">
+                    <button class="btn btn-small btn-secondary" onclick="nextQuestion()">
+                        ⏭️ 다음 문제
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 답안 화면 -->
+        <div class="screen" id="answer-screen">
+            <div class="answer-card">
+                <div class="answer-title">정답</div>
+                <div class="answer-price" id="answer-price">
+                    000,000원
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="nextQuestion()">
+                    ⏭️ 다음 문제
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 퀴즈 데이터 (CSV에서 변환된 JSON 데이터)
+        const quizData = {
+            시술: [
+                {"문제":"끌링 작은얼굴 1회 가격은?","정답":110000},
+                {"문제":"끌링 작은얼굴 10회 가격은?","정답":1020000},
+                {"문제":"끌링 작은얼굴 20회 가격은?","정답":1980000},
+                {"문제":"끌링 작은얼굴 30회 가격은?","정답":2475000},
+                {"문제":"골드 페이스라인 1회 가격은?","정답":110000},
+                {"문제":"골드 페이스라인 10회 가격은?","정답":1020000},
+                {"문제":"골드 페이스라인 20회 가격은?","정답":1980000},
+                {"문제":"골드 페이스라인 30회 가격은?","정답":2475000},
+                {"문제":"작은얼굴 1회 가격은?","정답":140000},
+                {"문제":"작은얼굴 10회 가격은?","정답":1250000},
+                {"문제":"작은얼굴 20회 가격은?","정답":2360000},
+                {"문제":"작은얼굴 30회 가격은?","정답":2850000},
+                {"문제":"골드 페이스 바디라인 1회 가격은?","정답":150000},
+                {"문제":"골드 페이스 바디라인 10회 가격은?","정답":1280000},
+                {"문제":"골드 페이스 바디라인 20회 가격은?","정답":2350000},
+                {"문제":"골드 페이스 바디라인 30회 가격은?","정답":2880000},
+                {"문제":"뉴작은얼굴 1회 가격은?","정답":160000},
+                {"문제":"뉴작은얼굴 10회 가격은?","정답":1300000},
+                {"문제":"뉴작은얼굴 20회 가격은?","정답":2400000},
+                {"문제":"뉴작은얼굴 30회 가격은?","정답":2910000},
+                {"문제":"이목구비 1회 가격은?","정답":170000},
+                {"문제":"이목구비 10회 가격은?","정답":1490000},
+                {"문제":"이목구비 20회 가격은?","정답":2650000},
+                {"문제":"이목구비 30회 가격은?","정답":2940000},
+                {"문제":"끌링 이목구비 1회 가격은?","정답":170000},
+                {"문제":"끌링 이목구비 10회 가격은?","정답":1490000},
+                {"문제":"끌링 이목구비 20회 가격은?","정답":2650000},
+                {"문제":"끌링 이목구비 30회 가격은?","정답":2940000},
+                {"문제":"페이스 트레이닝 1회 가격은?","정답":150000},
+                {"문제":"페이스 트레이닝 10회 가격은?","정답":1280000},
+                {"문제":"페이스 트레이닝 20회 가격은?","정답":2350000},
+                {"문제":"페이스 트레이닝 30회 가격은?","정답":2880000},
+                {"문제":"크레이지 대칭 1회 가격은?","정답":200000},
+                {"문제":"더마리젠 리턴 솔루션 1회 가격은?","정답":200000},
+                {"문제":"더마리젠 리턴 솔루션 10회 가격은?","정답":1800000},
+                {"문제":"스피큘루션 Q 1회 가격은?","정답":250000},
+                {"문제":"스피큘루션 Q 6회 가격은?","정답":1350000},
+                {"문제":"DMTS 1회 가격은?","정답":180000},
+                {"문제":"페이스라인 리프팅 1회 가격은?","정답":300000},
+                {"문제":"바스트 상체라인 1회 가격은?","정답":230000},
+                {"문제":"바스트 상체라인 10회 가격은?","정답":1900000},
+                {"문제":"바스트 상체라인 20회 가격은?","정답":3300000},
+                {"문제":"바스트 상체라인 30회 가격은?","정답":4200000},
+                {"문제":"셀룰로우 전신 1회 가격은?","정답":200000},
+                {"문제":"셀룰로우 전신 20회 가격은?","정답":2900000},
+                {"문제":"셀룰로우 상체 1회 가격은?","정답":150000},
+                {"문제":"셀룰로우 상체 20회 가격은?","정답":2200000},
+                {"문제":"셀룰로우 하체 1회 가격은?","정답":150000},
+                {"문제":"셀룰로우 하체 20회 가격은?","정답":2200000},
+                {"문제":"골드 상체라인(Back) 1회 가격은?","정답":110000},
+                {"문제":"골드 상체라인(Back) 10회 가격은?","정답":1000000},
+                {"문제":"골드 상체라인(Back) 20회 가격은?","정답":1800000},
+                {"문제":"골드 상체라인(Back) 30회 가격은?","정답":2250000},
+                {"문제":"골드 하체라인(Back) 1회 가격은?","정답":110000},
+                {"문제":"골드 하체라인(Back) 10회 가격은?","정답":1000000},
+                {"문제":"골드 하체라인(Back) 20회 가격은?","정답":1800000},
+                {"문제":"골드 하체라인(Back) 30회 가격은?","정답":2250000},
+                {"문제":"애플힙 1회 가격은?","정답":100000},
+                {"문제":"애플힙 10회 가격은?","정답":700000},
+                {"문제":"부분관리(목&어깨/종아리) 1회 가격은?","정답":60000},
+                {"문제":"부분관리(목&어깨/종아리) 10회 가격은?","정답":600000},
+                {"문제":"부분관리(목&어깨/종아리) 20회 가격은?","정답":1200000},
+            ],
+            제품: [
+                {"문제":"모이스처 페어리 토너 480ml 가격은?","정답":13200},
+                {"문제":"모이스처 페어리 크림 100ml 가격은?","정답":15600},
+                {"문제":"모이스처 페어리 앰플 30ml 가격은?","정답":15000},
+                {"문제":"모이스처 페어리 앰플 100ml 가격은?","정답":32000},
+                {"문제":"DMTS 바이오 미스트 80ml 가격은?","정답":4800},
+                {"문제":"DMTS 바이오 세럼 30ml 가격은?","정답":8400},
+                {"문제":"DMTS 바이오 크림 35ml 가격은?","정답":7200},
+                {"문제":"카밍 피토겔 150ml 가격은?","정답":6300},
+                {"문제":"카밍 피토겔 480ml 가격은?","정답":13200},
+                {"문제":"퍼펙트 클렌징 겔 200ml 가격은?","정답":3600},
+                {"문제":"선블록 에센스/비비 50ml 가격은?","정답":5800}
+            ]
+        };
+
+        // 퀴즈 앱 클래스
+        class ClimeQuizApp {
+            constructor() {
+                this.currentQuizType = null;
+                this.currentQuestions = [];
+                this.currentIndex = 0;
+                this.showingAnswer = false;
+                this.orderType = '기본'; // 기본값은 '기본' 순서
+            }
+
+            init() {
+                this.showScreen('home-screen');
+                this.hideCloseBtn();
+                this.updateOrderDisplay();
+            }
+
+            showScreen(screenId) {
+                // 모든 스크린 숨기기
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // 선택된 스크린 보이기
+                setTimeout(() => {
+                    document.getElementById(screenId).classList.add('active');
+                    document.getElementById(screenId).classList.add('fade-in');
+                }, 100);
+            }
+
+            showCloseBtn() {
+                document.querySelector('.close-btn').classList.add('visible');
+            }
+
+            hideCloseBtn() {
+                document.querySelector('.close-btn').classList.remove('visible');
+            }
+
+            // 순서 토글 함수
+            toggleOrder(orderType) {
+                this.orderType = orderType;
+                this.updateOrderDisplay();
+                this.updateOrderButtons();
+            }
+
+            // 순서 표시 업데이트
+            updateOrderDisplay() {
+                document.getElementById('order-display').textContent = this.orderType;
+            }
+
+            // 순서 버튼 상태 업데이트
+            updateOrderButtons() {
+                document.querySelectorAll('.toggle-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (this.orderType === '기본') {
+                    document.getElementById('order-basic').classList.add('active');
+                } else {
+                    document.getElementById('order-random').classList.add('active');
+                }
+            }
+
+            // Fisher-Yates 셔플 알고리즘
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            }
+
+            // 가격 포맷팅 (천 단위 콤마 + 원)
+            formatPrice(price) {
+                return price.toLocaleString('ko-KR') + '원';
+            }
+
+            startQuiz(quizType) {
+                this.currentQuizType = quizType;
+                
+                // 선택된 순서에 따라 문제 배열 설정
+                if (this.orderType === '랜덤') {
+                    this.currentQuestions = this.shuffleArray(quizData[quizType]);
+                } else {
+                    // 기본 순서 (원본 배열 복사)
+                    this.currentQuestions = [...quizData[quizType]];
+                }
+                
+                this.currentIndex = 0;
+                this.showingAnswer = false;
+                
+                this.showCloseBtn();
+                this.displayQuestion();
+                this.showScreen('question-screen');
+            }
+
+            displayQuestion() {
+                const question = this.currentQuestions[this.currentIndex];
+                
+                document.getElementById('question-category').textContent = 
+                    this.currentQuizType === '시술' ? '🏥 시술 가격 퀴즈' : '🧴 제품 가격 퀴즈';
+                document.getElementById('question-text').textContent = question.문제;
+                
+                this.showingAnswer = false;
+            }
+
+            showAnswer() {
+                const question = this.currentQuestions[this.currentIndex];
+                const formattedPrice = this.formatPrice(question.정답);
+                
+                document.getElementById('answer-price').textContent = formattedPrice;
+                
+                this.showingAnswer = true;
+                this.showScreen('answer-screen');
+            }
+
+            nextQuestion() {
+                // 다음 문제로 이동
+                this.currentIndex = (this.currentIndex + 1) % this.currentQuestions.length;
+                
+                // 질문 화면으로 이동
+                this.displayQuestion();
+                this.showScreen('question-screen');
+            }
+
+            goHome() {
+                this.hideCloseBtn();
+                this.showScreen('home-screen');
+            }
+        }
+
+        // 전역 함수들 (HTML에서 호출)
+        function startQuiz(quizType) {
+            quiz.startQuiz(quizType);
+        }
+
+        function showAnswer() {
+            quiz.showAnswer();
+        }
+
+        function nextQuestion() {
+            quiz.nextQuestion();
+        }
+
+        function goHome() {
+            quiz.goHome();
+        }
+
+        function toggleOrder(orderType) {
+            quiz.toggleOrder(orderType);
+        }
+
+        // 앱 초기화
+        const quiz = new ClimeQuizApp();
+        quiz.init();
+
+        // 키보드 지원
+        document.addEventListener('keydown', function(e) {
+            const currentScreen = document.querySelector('.screen.active').id;
+            
+            if (currentScreen === 'question-screen') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    quiz.showAnswer();
+                } else if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+                    e.preventDefault();
+                    quiz.nextQuestion();
+                }
+            } else if (currentScreen === 'answer-screen') {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
+                    e.preventDefault();
+                    quiz.nextQuestion();
+                }
+            }
+            
+            // ESC 키로 홈으로 이동
+            if (e.key === 'Escape') {
+                quiz.goHome();
+            }
+        });
+
+        // 터치 이벤트 최적화
+        document.addEventListener('touchstart', function() {}, {passive: true});
+    </script>
+</body>
+</html>
