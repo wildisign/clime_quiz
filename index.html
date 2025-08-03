@@ -61,6 +61,34 @@
             justify-content: center;
         }
 
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #74b9ff;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.4em;
+            cursor: pointer;
+            display: none;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #0984e3;
+            transform: scale(1.1);
+        }
+
+        .back-btn.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .screen {
             position: absolute;
             top: 0;
@@ -188,6 +216,31 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
+        .completion-card {
+            background: linear-gradient(135deg, #ffebde, #ffebbe);
+            border-radius: 20px;
+            padding: 40px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 40px rgba(255, 234, 167, 0.5);
+            color: #2d3436;
+            text-align: center;
+        }
+
+        .completion-card .logo {
+            background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .completion-card h1 {
+            color: #2d3436;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
         .controls {
             display: flex;
             flex-direction: column;
@@ -306,6 +359,10 @@
             .toggle-btn {
                 padding: 10px 16px;
             }
+
+            .completion-card h1 {
+                font-size: 1.5em;
+            }
         }
 
         .fade-in {
@@ -321,6 +378,7 @@
 <body>
     <div class="container">
         <button class="close-btn" onclick="goHome()">×</button>
+        <button class="back-btn" onclick="goBackToQuestion()">‹</button>
 
         <!-- 메인 화면 -->
         <div class="screen active" id="home-screen">
@@ -397,6 +455,22 @@
                 <button class="btn" onclick="nextQuestion()">
                     ⏭️ 다음 문제
                 </button>
+            </div>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div class="screen" id="completion-screen">
+            <div class="completion-card">
+                <div class="logo">🎉</div>
+                <h1>모든 문제를 풀었어요!</h1>
+                <div class="controls">
+                    <button class="btn" onclick="goHome()">
+                        🏠 메인으로
+                    </button>
+                    <button class="btn btn-secondary" onclick="restartQuiz()">
+                        🔄 다시 풀기
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -491,11 +565,13 @@
                 this.currentIndex = 0;
                 this.showingAnswer = false;
                 this.orderType = '기본'; // 기본값은 '기본' 순서
+                this.questionsAnswered = 0; // 푼 문제 개수 추적
             }
 
             init() {
                 this.showScreen('home-screen');
                 this.hideCloseBtn();
+                this.hideBackBtn();
                 this.updateOrderDisplay();
             }
 
@@ -510,6 +586,18 @@
                     document.getElementById(screenId).classList.add('active');
                     document.getElementById(screenId).classList.add('fade-in');
                 }, 100);
+
+                // 버튼 표시 상태 관리
+                if (screenId === 'home-screen' || screenId === 'completion-screen') {
+                    this.hideCloseBtn();
+                    this.hideBackBtn();
+                } else if (screenId === 'question-screen') {
+                    this.showCloseBtn();
+                    this.hideBackBtn();
+                } else if (screenId === 'answer-screen') {
+                    this.showCloseBtn();
+                    this.showBackBtn();
+                }
             }
 
             showCloseBtn() {
@@ -518,6 +606,14 @@
 
             hideCloseBtn() {
                 document.querySelector('.close-btn').classList.remove('visible');
+            }
+
+            showBackBtn() {
+                document.querySelector('.back-btn').classList.add('visible');
+            }
+
+            hideBackBtn() {
+                document.querySelector('.back-btn').classList.remove('visible');
             }
 
             // 순서 토글 함수
@@ -572,9 +668,9 @@
                 }
                 
                 this.currentIndex = 0;
+                this.questionsAnswered = 0;
                 this.showingAnswer = false;
                 
-                this.showCloseBtn();
                 this.displayQuestion();
                 this.showScreen('question-screen');
             }
@@ -599,7 +695,22 @@
                 this.showScreen('answer-screen');
             }
 
+            goBackToQuestion() {
+                this.showScreen('question-screen');
+            }
+
             nextQuestion() {
+                // 문제를 푼 것으로 카운트 (답안을 확인했을 때만)
+                if (this.showingAnswer) {
+                    this.questionsAnswered++;
+                }
+
+                // 모든 문제를 다 풀었는지 확인
+                if (this.questionsAnswered >= this.currentQuestions.length) {
+                    this.showScreen('completion-screen');
+                    return;
+                }
+
                 // 다음 문제로 이동
                 this.currentIndex = (this.currentIndex + 1) % this.currentQuestions.length;
                 
@@ -608,8 +719,11 @@
                 this.showScreen('question-screen');
             }
 
+            restartQuiz() {
+                this.startQuiz(this.currentQuizType);
+            }
+
             goHome() {
-                this.hideCloseBtn();
                 this.showScreen('home-screen');
             }
         }
@@ -629,6 +743,14 @@
 
         function goHome() {
             quiz.goHome();
+        }
+
+        function goBackToQuestion() {
+            quiz.goBackToQuestion();
+        }
+
+        function restartQuiz() {
+            quiz.restartQuiz();
         }
 
         function toggleOrder(orderType) {
@@ -655,6 +777,17 @@
                 if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
                     e.preventDefault();
                     quiz.nextQuestion();
+                } else if (e.key === 'ArrowLeft' || e.key === 'b' || e.key === 'B') {
+                    e.preventDefault();
+                    quiz.goBackToQuestion();
+                }
+            } else if (currentScreen === 'completion-screen') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    quiz.goHome();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    e.preventDefault();
+                    quiz.restartQuiz();
                 }
             }
             
